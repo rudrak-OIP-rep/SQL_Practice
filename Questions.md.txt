@@ -1,0 +1,65 @@
+Easy
+1.List all customers’ first and last names.
+2.Show all unique countries from the Customer table.
+3.Retrieve all invoices with a total greater than 10.
+4.List customers from the USA, ordered by last name.
+5.Show all tracks with a unit price greater than 0.99.
+6.Display employee full names using aliases (FirstName + LastName).
+7.List all cities where customers are located (no duplicates).
+8.Show all invoices sorted by InvoiceDate descending.
+9.Retrieve tracks with names starting with “A” (use string function).
+10.Show the length of each track name.
+11.Round all invoice totals to 1 decimal place.
+12.Replace NULL fax numbers in Customer with 'N/A'.
+13.Convert all customer first names to uppercase.
+14.Show the current date and time.
+15.List tracks with milliseconds converted into seconds.
+
+Medium
+16.List customer names along with their invoices.
+17.Show total number of invoices per customer.
+18.Display the total sales (sum of Total) per country.
+19.List the top 5 most expensive tracks.
+20.Show average track length (milliseconds) per genre.
+21.Retrieve albums with their artist names.
+22.Count how many tracks exist in each album.
+23.Show customers who have spent more than $50.
+24.List invoices with customer full name and invoice total.
+25.Find the longest track in the database.
+26.Display employees and the customers they support.
+27.Show the number of customers supported by each employee.
+28.List all tracks that belong to the “Rock” genre.
+29.Find all invoices that have more than 3 line items.
+30.Show total quantity sold per track.
+31.Display playlist names and number of tracks in each playlist.
+32.Show the most recent invoice date.
+33.Find customers who have never made a purchase (subquery).
+34.Show all tracks priced above the average track price.
+35.List customers whose email contains “gmail”.
+36.Show invoices between two specific dates.
+37.Display top 3 countries by total sales.
+38.Show total sales per year.
+39.List tracks and categorize them as “Long” or “Short” (CASE).
+40.Show albums that have more than 10 tracks.
+
+Hard
+41.Find the top 3 customers by total spending.
+42.Show each customer’s rank based on total purchases.
+43.List the most popular genre (by sales).
+44.Find the artist who generated the most revenue.
+45.Show revenue per employee (based on supported customers).
+46.Find the top-selling track per country.
+47.Show the percentage contribution of each country to total sales.
+48.List customers who spent above their country’s average.
+49.Find the longest track in each album.
+50.Show albums where all tracks cost more than $0.99.
+51.Identify customers who made purchases in multiple years.
+52.Find the month with the highest sales.
+53.Show customers who bought every genre available.
+54.Find duplicate billing cities across invoices.
+55.Show running total of sales ordered by date.
+56.Identify tracks that were never sold.
+57.Show playlists that contain tracks from more than 3 genres.
+58.Find customers whose total purchases increased year-over-year.
+59.Show employees who do not manage anyone.
+60.Find the most common billing country per year.
