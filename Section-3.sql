@@ -1,134 +1,248 @@
 --Rank tracks by length within each album.
-select
+SELECT
+	a.AlbumId ,
+	a.Title ,
 	t.TrackId ,
-	t.Name as TrackName,
-	t.AlbumId ,
-	a.Title as AlbumName,
 	t.Milliseconds,
-	Rank() over(partition by t.AlbumId order by t.Milliseconds desc) as LengthRank
-from
-	Track t
-inner join Album a on
-	t.AlbumId = a.AlbumId
+	ROW_NUMBER() OVER(PARTITION BY a.AlbumId ORDER BY t.Milliseconds DESC) AS Ranking
+FROM
+	Album a
+INNER JOIN Track t ON
+	a.AlbumId = t.AlbumId
 	
 	
 --Find the second-longest track in each album.
-WITH RankOnAlbumTrackLength AS (
-select
-	t.TrackId as TrackNum,
-	t.Name as TrackName,
-	t.AlbumId as AlbumNum,
-	a.Title as AlbumName,
-	t.Milliseconds as TrackLength,
-	Dense_Rank() over(partition by t.AlbumId order by t.Milliseconds desc) as LengthRank
-from
-	Track t
-inner join Album a on
-	t.AlbumId = a.AlbumId
+WITH AlbumTracksRank AS (
+SELECT
+	a.AlbumId AS AlbumNum,
+	t.TrackId AS TrackNum,
+	t.Milliseconds AS Length,
+	DENSE_RANK() OVER(PARTITION BY a.AlbumId ORDER BY t.Milliseconds DESC) AS Ranking
+FROM
+	Album a
+INNER JOIN Track t ON
+	a.AlbumId = t.AlbumId
 )
-select
-	TrackNum,
-	TrackName,
+SELECT
 	AlbumNum,
-	AlbumName,
-	TrackLength
-from
-	RankOnAlbumTrackLength
-where
-	LengthRank = 2
+	TrackNum,
+	Length
+FROM
+	AlbumTracksRank
+WHERE
+	Ranking = 2
 	
 	
 --Show the top 3 highest-spending customers per country.
-with AmountSpentPerCountry as (
-select
-	i.CustomerId as CustNum,
-	i.BillingCountry As CustCountry,
-	c.FirstName || ' ' || c.LastName as FullName,
-	sum(i.Total) as TotalAmountSpentByCustomer,
-	Dense_Rank() Over(partition by i.BillingCountry order by sum(i.Total) desc ) as CustomerRankPerCountry
-from
-	Invoice i
-inner join Customer c on
-	i.CustomerId = c.CustomerId
-group BY
-	i.CustomerId ,
-	i.BillingCountry,
+WITH CountryCustomerSpent AS (
+SELECT
+	c.Country AS Country,
+	c.CustomerId AS CustNum,
+	c.FirstName || ' ' || c.LastName AS FullName,
+	SUM(i.Total) AS Spent,
+	DENSE_RANK() OVER(PARTITION BY c.Country ORDER BY SUM(i.Total) DESC ) AS Rankings
+FROM
+	Customer c
+INNER JOIN Invoice i ON
+	c.CustomerId = i.CustomerId
+GROUP BY
+	c.Country,
+	c.CustomerId,
 	c.FirstName,
-	c.LastName
+    c.LastName
 )
-select
+SELECT
+	Country,
 	CustNum,
-	CustCountry,
 	FullName,
-	TotalAmountSpentByCustomer
-from
-	AmountSpentPerCountry
-where
-	CustomerRankPerCountry <= 3;
+	Spent,
+	Rankings
+FROM
+	CountryCustomerSpent
+WHERE
+	Rankings <= 3;
 
 
 --Display running yearly sales totals.
-with YearlySales as (
-select
-	STRFTIME('%Y', i.InvoiceDate ) as SaleYear,
-	sum(i.Total) as TotalSalesInAYear
-from
+SELECT
+	STRFTIME('%Y',i.InvoiceDate) AS Year,
+	SUM(i.Total) AS SalesInAYear,
+	SUM(SUM(i.Total)) OVER(ORDER BY STRFTIME('%Y',i.InvoiceDate)) AS RunningSales
+FROM
 	Invoice i
-group by
-	STRFTIME('%Y', i.InvoiceDate )
-)
-select
-	SaleYear,
-	TotalSalesInAYear,
-	sum(TotalSalesInAYear) Over(order by SaleYear) as RunningYearlySales
-from
-	YearlySales
-	
-	
+GROUP BY Year
+
+
 --Find each customer’s previous purchase amount.
 SELECT
-	i.customerId,
-	i.InvoiceDate,
-	i.Total as CurrentPurchaseAmt,
-	Coalesce((Lag(i.Total, 1) Over(partition by i.CustomerId order by i.InvoiceDate)), 0) as PreviousPurchaseAmt
-from
+	i.InvoiceDate ,
+	i.CustomerId ,
+	i.Total,
+	COALESCE(LAG(i.Total , 1) OVER(PARTITION BY i.CustomerId ORDER BY i.InvoiceDate ), 0) AS PrevPurchaseAmt
+FROM
 	Invoice i
+ORDER BY
+	i.CustomerId ,
+	i.InvoiceDate
 	
 	
 --Show sales growth percentage year-over-year.
-with SalesPerYear as (
-select
-	STRFTIME('%Y', i.InvoiceDate ) as SaleYear,
-	sum(i.Total) as TotalSales
-from
+SELECT
+	STRFTIME('%Y', i.InvoiceDate ) AS Year,
+	SUM(i.Total) AS SalesInAYear,
+	ROUND(((SUM(i.Total) - LAG(SUM(i.Total), 1) OVER(ORDER BY STRFTIME('%Y', i.InvoiceDate ) ASC))* 100) / LAG(SUM(i.Total), 1) OVER(ORDER BY STRFTIME('%Y', i.InvoiceDate ) ASC), 2) AS SalesPercentGrowth
+FROM
 	Invoice i
-group by
+GROUP BY
 	STRFTIME('%Y', i.InvoiceDate )
-)
-select
-	SaleYear,
-	TotalSales,
-	Round(((TotalSales - lag(TotalSales) OVER(order by SaleYear)) * 100.0)/ lag(TotalSales) OVER(order by SaleYear), 2) as SalesGrowthPercentage
-from
-	SalesPerYear
-	
-	
+
+
 --Find the first invoice made by each customer.
-with InvoiceMadeByCustomer as (
-select
-	i.CustomerId as CustNum,
-	i.InvoiceDate as InvDate,
-	i.InvoiceId as InvNum,
-	Row_number() OVER (partition by i.CustomerId
-order by
-	i.InvoiceDate) as InvoiceRankingPerCustomer
-from
-	Invoice i 
+WITH CustomerInvoiceRanking AS (
+SELECT
+	c.CustomerId AS CustNum,
+	c.FirstName || ' ' || c.LastName AS FullName,
+	i.InvoiceId AS InvoiceNum,
+	i.InvoiceDate AS InvoiceDate,
+	i.Total AS Amt,
+	DENSE_RANK() OVER(PARTITION BY c.CustomerId ORDER BY i.InvoiceDate ASC) AS Ranking
+FROM
+	Invoice i
+INNER JOIN Customer c ON
+	i.CustomerId = c.CustomerId
 )
-Select
+SELECT
 	CustNum,
-	InvNum
-from
-	InvoiceMadeByCustomer
-where
-	InvoiceRankingPerCustomer = 1
+	FullName,
+	InvoiceNum,
+	Amt
+FROM
+	CustomerInvoiceRanking
+WHERE
+	Ranking = 1
+	
+	
+--Find customers whose purchases continuously increased over time.
+--GPT
+WITH CustomerYearAmount AS (
+SELECT
+	c.CustomerId as CustNum,
+	STRFTIME('%Y', i.InvoiceDate) AS Year,
+	SUM(i.Total) AS TotalSales,
+	LAG(SUM(i.Total) , 1) OVER(PARTITION BY c.CustomerId ORDER BY STRFTIME('%Y', i.InvoiceDate) ) AS PrevPurchaseAmt
+FROM
+	Customer c
+INNER JOIN Invoice i ON
+	c.CustomerId = i.CustomerId
+GROUP BY
+	c.CustomerId ,
+	STRFTIME('%Y', i.InvoiceDate)
+	)
+SELECT
+    CustNum
+FROM CustomerYearAmount
+GROUP BY CustNum
+HAVING SUM(
+    CASE
+        WHEN PrevPurchaseAmt IS NOT NULL
+             AND TotalSales <= PrevPurchaseAmt
+        THEN 1
+        ELSE 0
+    END
+) = 0;
+
+
+--Gemini
+WITH CustomerYearAmount AS (
+	SELECT
+		c.CustomerId AS CustNum,
+		STRFTIME('%Y', i.InvoiceDate) AS Year,
+		SUM(i.Total) AS TotalSales,
+		LAG(SUM(i.Total), 1) OVER(PARTITION BY c.CustomerId ORDER BY STRFTIME('%Y', i.InvoiceDate)) AS PrevPurchaseAmt
+	FROM
+		Customer c
+	INNER JOIN Invoice i ON
+		c.CustomerId = i.CustomerId
+	GROUP BY
+		c.CustomerId,
+		STRFTIME('%Y', i.InvoiceDate)
+	-- Removed the trailing ORDER BY here!
+)
+SELECT
+	CustNum
+FROM
+	CustomerYearAmount
+GROUP BY
+	CustNum
+HAVING 
+	-- Check 1: Did they ever drop or stay flat? (Must be 0 rule-breakers)
+	SUM(CASE WHEN TotalSales <= PrevPurchaseAmt THEN 1 ELSE 0 END) = 0
+	-- Check 2: Make sure they actually have a history (More than 1 year of data)
+	AND COUNT(Year) > 1;
+
+
+--Display the difference between each invoice and the previous invoice for the same customer.
+SELECT
+	c.CustomerId ,
+	c.FirstName || ' ' || c.LastName AS FullName,
+	i.InvoiceDate,
+	i.Total,
+	i.Total - LAG(i.Total) OVER(PARTITION BY c.CustomerId ORDER BY i.InvoiceDate, i.InvoiceId) AS Difference
+FROM
+	Invoice i
+INNER JOIN Customer c ON
+	i.CustomerId = c.CustomerId
+ORDER BY
+    c.CustomerId,
+    i.InvoiceDate;
+
+
+--Show the most expensive track in each genre.
+WITH GenreTrackRank AS (
+SELECT
+	g.GenreId AS GenreNum,
+	g.Name AS GenreName,
+	t.TrackId AS TracNum,
+	t.Name AS TrackName,
+	t.UnitPrice AS Price,
+	DENSE_RANK() OVER(PARTITION BY g.GenreId ORDER BY t.UnitPrice DESC) AS Ranking
+FROM
+	Track t
+INNER JOIN Genre g ON
+	t.GenreId = g.GenreId
+)
+SELECT
+	GenreNum,
+	GenreName,
+	TracNum,
+	TrackName,
+	Price
+FROM
+	GenreTrackRank
+WHERE
+	Ranking = 1
+	
+	
+--Find the top-selling track within each country. No CTE
+SELECT
+	Country,
+	TrackNum,
+	QtySold
+FROM
+	(
+	SELECT
+		i.BillingCountry AS Country,
+		il.TrackId AS TrackNum,
+		SUM(il.Quantity) AS QtySold,
+		DENSE_RANK() OVER(PARTITION BY i.BillingCountry ORDER BY SUM(il.Quantity) DESC) AS Ranking
+	FROM
+		InvoiceLine il
+	INNER JOIN Invoice i ON
+		il.InvoiceId = i.InvoiceId
+	GROUP BY
+		i.BillingCountry ,
+		il.TrackId) AS RankedTracks
+WHERE
+	Ranking = 1
+
+
