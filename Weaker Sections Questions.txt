@@ -1,0 +1,134 @@
+Section 1 — GROUP BY + HAVING Mastery -----------------------------------------------------------------------------------------------
+
+	1. Find customers who made more than 5 purchases.
+
+	2. Show albums containing fewer than 5 tracks.
+
+	3.Find genres with average track length greater than 4 minutes.
+
+	4. Display countries having more than 10 customers.
+
+	5. Show playlists containing more than 50 tracks.
+
+	6. Find artists who have released more than 3 albums.
+
+	7. List customers whose average invoice total exceeds $8.
+
+	8. Find billing cities with total sales greater than their country’s average city sales.
+
+Section 2 — Subqueries & Correlated Subqueries --------------------------------------------------------------------------------------
+
+	9. Find tracks priced higher than the most expensive Rock track. 
+
+	10. Show customers whose spending is above the global average customer spending.
+
+	11. Find albums whose total duration exceeds the average album duration.
+
+	12. List employees who support customers from more than 3 countries.
+
+	13. Find tracks that were purchased more times than the average purchased track.
+
+	14. Show customers who bought tracks from the same genre multiple times.
+
+	15. Find artists whose revenue exceeds the average artist revenue.
+
+	16.List customers who spent more than every customer from Brazil. (Hint: > ALL (...))
+
+Section 3 — Window Functions (Your Most Important Practice Area) --------------------------------------------------------------------
+
+	17. Rank tracks by length within each album. (Use: ROW_NUMBER())
+
+	18. Find the second-longest track in each album.
+
+	19.Show the top 3 highest-spending customers per country. (Use: PARTITION BY Country)
+
+	20. Display running yearly sales totals.
+
+	21.Find each customer’s previous purchase amount. (Use: LAG())
+
+	22. Show sales growth percentage year-over-year.
+
+	23. Find the first invoice made by each customer.
+
+	24.Find customers whose purchases continuously increased over time. (Harder version of your previous problem)
+
+	25. Display the difference between each invoice and the previous invoice for the same customer.
+
+	26. Show the most expensive track in each genre.
+
+	27. Find the top-selling track within each country. (No CTE shortcut — try solving with ranking directly)
+
+Section 4 — “ALL / EVERY / NEVER” Problems (Important Weak Area) --------------------------------------------------------------------
+
+	28. Find customers who purchased from every genre.
+
+	29. Show albums where every track is longer than 3 minutes.
+
+	30. Find playlists that contain tracks from every media type.
+
+	31. Show artists whose every album contains at least one Rock track.
+
+	32. Find customers who never purchased Rock tracks.
+
+	33. Show employees whose customers all belong to the same country.
+
+	34. Find albums where no track has ever been sold.
+
+Section 5 — Multi-Table Revenue Analysis --------------------------------------------------------------------------------------------
+
+	35. Find the highest revenue-generating album.
+
+	36. Show total revenue generated per genre per year.
+
+	37. Find the employee responsible for the highest revenue in each country.
+
+	38. Show each customer’s favorite genre. (Hint: genre purchased most frequently)
+
+	39. Find artists whose tracks were purchased by customers from more than 10 countries.
+
+	40. Show the percentage contribution of each genre to total revenue.
+
+Section 6 — Advanced Thinking Problems ----------------------------------------------------------------------------------------------
+
+	41. Find customers who purchased tracks in consecutive years.
+
+	42. Identify the longest gap between purchases for each customer. (Hint: LAG() with dates)
+
+	43. Find customers who bought all tracks from a particular artist.
+
+	44. Show genres whose sales are consistently increasing year-over-year.
+
+	45. Find the month contributing the highest percentage to yearly sales.
+
+	46. Find the top-selling artist for each year.
+
+	47. Show customers whose latest purchase exceeded their average purchase amount.
+
+	48. Find tracks purchased by exactly one customer.
+
+	49. Show the most common genre purchased in each country.
+
+	50. Find customers who have purchased from every media type and every genre.
+
+Your Goal
+If you can solve:
+1–20 confidently → strong junior level
+20–35 confidently → solid intermediate SQL
+35–50 confidently → very strong SQL problem-solving ability
+You are already progressing toward intermediate SQL. The next jump is:
+learning to recognize query patterns immediately.
+That only comes from repeated practice with harder analytical problems like these.
+
+--Find customers who purchased only Rock tracks.
+
+--Find customers who have purchased at least one track from every genre using NOT EXISTS instead of COUNT(DISTINCT)
+
+--Customers who purchased only Rock tracks.
+
+--Albums where every track has been sold.
+
+--Artists whose albums were all purchased.
+
+--Find customers who purchased in three consecutive years.
+
+--Find the customer with the longest streak of consecutive purchasing years.
